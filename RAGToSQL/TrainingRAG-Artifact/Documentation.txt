@@ -1,0 +1,107 @@
+Wealth Asset Management Database Documentation
+
+Overview
+The Wealth Asset Management database supports a wealth-management platform. It tracks financial advisors, the clients they manage, the clients' accounts and portfolios, the assets held in those portfolios, the transactions made on accounts, and projected future portfolio values. The database has 8 tables, 5 views and 5 stored procedures. Dialect: Microsoft SQL Server / T-SQL (use TOP instead of LIMIT, GETDATE() for the current date, DATEADD for date arithmetic).
+
+Tables
+
+1. Advisors - financial advisors who manage clients.
+   - AdvisorID (INT, primary key, identity)
+   - Name (NVARCHAR(100))
+   - ContactInfo (NVARCHAR(100)) - phone number
+
+2. Clients - the customers of the wealth-management firm.
+   - ClientID (INT, primary key, identity)
+   - Name (NVARCHAR(100))
+   - ContactInfo (NVARCHAR(100)) - phone number
+   - AdvisorID (INT, foreign key -> Advisors.AdvisorID) - the advisor responsible for the client
+   - RiskProfile (NVARCHAR(50)) - one of 'High', 'Medium', 'Low'. This is the client's risk appetite; there is no separate risk-assessment table.
+
+3. Accounts - financial accounts owned by clients.
+   - AccountID (INT, primary key, identity)
+   - AccountType (NVARCHAR(50)) - one of 'Savings', 'Checking', 'Investment'
+   - ClientID (INT, foreign key -> Clients.ClientID)
+   Note: there is no balance column; account activity is derived from the Transactions table.
+
+4. Assets - investable instruments. An asset is independent of any client or portfolio.
+   - AssetID (INT, primary key, identity)
+   - Name (NVARCHAR(100)) - e.g. a company name
+   - AssetType (NVARCHAR(50)) - one of 'Stock', 'Bond', 'Real Estate', 'Commodity', 'Cash'
+   - CurrentValue (DECIMAL(18,2)) - current unit value of the asset
+
+5. Transactions - buy/sell/deposit/withdraw activity on an account involving an asset.
+   - TransactionID (INT, primary key, identity)
+   - AccountID (INT, foreign key -> Accounts.AccountID)
+   - AssetID (INT, foreign key -> Assets.AssetID)
+   - Date (DATETIME) - when the transaction happened
+   - Type (NVARCHAR(50)) - one of 'Buy', 'Sell', 'Deposit', 'Withdraw'
+   - Amount (DECIMAL(18,2))
+
+6. Portfolios - a named collection of assets belonging to one client. A client can have several portfolios.
+   - PortfolioID (INT, primary key, identity)
+   - ClientID (INT, foreign key -> Clients.ClientID)
+   - Name (NVARCHAR(100))
+   - RiskLevel (NVARCHAR(50)) - one of 'High', 'Medium', 'Low'
+
+7. PortfolioAssets - many-to-many link between Portfolios and Assets, with the allocation weight.
+   - PortfolioAssetID (INT, primary key, identity)
+   - PortfolioID (INT, foreign key -> Portfolios.PortfolioID)
+   - AssetID (INT, foreign key -> Assets.AssetID)
+   - Allocation (DECIMAL(18,2)) - percentage (0-100) of the portfolio allocated to this asset
+
+8. Projections - forecasted future values of a portfolio.
+   - ProjectionID (INT, primary key, identity)
+   - PortfolioID (INT, foreign key -> Portfolios.PortfolioID)
+   - FutureValue (DECIMAL(18,2))
+   - ProjectionDate (DATETIME) - the date the projected value refers to
+
+Relationships
+- Advisors 1 -> many Clients (Clients.AdvisorID)
+- Clients 1 -> many Accounts (Accounts.ClientID)
+- Clients 1 -> many Portfolios (Portfolios.ClientID)
+- Portfolios many <-> many Assets through PortfolioAssets
+- Accounts 1 -> many Transactions (Transactions.AccountID); Assets 1 -> many Transactions (Transactions.AssetID)
+- Portfolios 1 -> many Projections (Projections.PortfolioID)
+
+Key business definitions
+- Value of an asset position in a portfolio = PortfolioAssets.Allocation / 100.0 * Assets.CurrentValue
+- Total value of a portfolio = SUM(PortfolioAssets.Allocation * Assets.CurrentValue / 100.0) over its PortfolioAssets rows
+- Total portfolio value of a client = sum of the values of all of that client's portfolios (see the ClientPortfolioValue view)
+- "Best-selling" / "largest" / "most valuable" portfolio means highest TotalPortfolioValue (PortfolioSummary view)
+- Risk of a client = Clients.RiskProfile; risk of a portfolio = Portfolios.RiskLevel
+
+Views
+
+1. PortfolioAssetAllocation - one row per asset position in a portfolio.
+   Columns: PortfolioID, PortfolioName, AssetID, AssetName, Allocation, CurrentValue, AllocatedValue
+
+2. ClientPortfolioValue - total value of all portfolios per client.
+   Columns: ClientID, ClientName, TotalPortfolioValue
+   Use this view for questions like "top clients by portfolio value".
+
+3. PortfolioSummary - total value and number of assets per portfolio, with the owning client.
+   Columns: PortfolioID, PortfolioName, ClientID, ClientName, TotalPortfolioValue, NumberOfAssets
+   Use this view for questions like "top portfolios by value".
+
+4. AccountTransactionHistory - transactions joined with account and asset details.
+   Columns: TransactionID, AccountID, AccountType, AssetID, Date, TransactionType, Amount, CurrentValue
+
+5. OverallWealthSummary - number of assets and total asset value per asset type.
+   Columns: AssetType, NumberOfAssets, TotalWealth
+
+Stored Procedures
+
+1. CalculateClientRiskAssessment - no parameters. Returns, for every client and portfolio, the portfolio's RiskLevel and its total allocated value. EXEC CalculateClientRiskAssessment;
+2. CalculateTotalPortfolioValue - no parameters. Returns TotalPortfolioValue per client and portfolio. EXEC CalculateTotalPortfolioValue;
+3. IdentifyUnderperformingAssets @Threshold DECIMAL(18,2), @DaysInterval INT - returns assets with fewer than @Threshold transactions in the last @DaysInterval days. EXEC IdentifyUnderperformingAssets @Threshold = 5, @DaysInterval = 90;
+4. GetPortfolioPerformanceOverTime @ClientID INT - returns, per portfolio and transaction date, the total transaction value and current portfolio value for one client. EXEC GetPortfolioPerformanceOverTime @ClientID = 1;
+5. AnalyzeAssetAllocation - no parameters. Returns the total Allocation of each asset summed across all portfolios. EXEC AnalyzeAssetAllocation;
+
+Typical questions and where to look
+- Top N clients by wealth -> ClientPortfolioValue ORDER BY TotalPortfolioValue DESC
+- Top N portfolios by value -> PortfolioSummary ORDER BY TotalPortfolioValue DESC
+- Clients per advisor -> Clients JOIN Advisors GROUP BY advisor
+- High-risk clients / portfolios -> Clients.RiskProfile = 'High' / Portfolios.RiskLevel = 'High'
+- Wealth by asset type -> OverallWealthSummary
+- Recent transactions, buys vs sells, amounts per account -> AccountTransactionHistory or Transactions JOIN Accounts
+- Projected future value of a portfolio -> Projections JOIN Portfolios (latest ProjectionDate per portfolio if a single value is needed)

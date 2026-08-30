@@ -1,0 +1,186 @@
+[
+ {
+  "id": 1,
+  "tag": "view-topn",
+  "question": "Which 5 clients have the highest total portfolio value?",
+  "sql": "SELECT TOP 5 ClientName, TotalPortfolioValue FROM ClientPortfolioValue ORDER BY TotalPortfolioValue DESC"
+ },
+ {
+  "id": 2,
+  "tag": "groupby",
+  "question": "How many clients are there in each risk profile?",
+  "sql": "SELECT RiskProfile, COUNT(*) AS ClientCount FROM Clients GROUP BY RiskProfile"
+ },
+ {
+  "id": 3,
+  "tag": "view",
+  "question": "What is the total wealth by asset type?",
+  "sql": "SELECT AssetType, TotalWealth FROM OverallWealthSummary"
+ },
+ {
+  "id": 4,
+  "tag": "join-topn",
+  "question": "Which 3 advisors manage the most high-risk clients?",
+  "sql": "SELECT TOP 3 a.Name, COUNT(*) AS n FROM Advisors a JOIN Clients c ON c.AdvisorID=a.AdvisorID WHERE c.RiskProfile='High' GROUP BY a.Name ORDER BY n DESC, a.Name",
+  "note": "tie at 7 - accept any ordering of tied advisors",
+  "compare": "first_row_and_values"
+ },
+ {
+  "id": 5,
+  "tag": "join-filter",
+  "question": "What is the total amount of Buy transactions per account type?",
+  "sql": "SELECT acc.AccountType, SUM(t.Amount) AS TotalBuyAmount FROM Transactions t JOIN Accounts acc ON t.AccountID=acc.AccountID WHERE t.Type='Buy' GROUP BY acc.AccountType"
+ },
+ {
+  "id": 6,
+  "tag": "count",
+  "question": "How many advisors are there?",
+  "sql": "SELECT COUNT(*) AS AdvisorCount FROM Advisors"
+ },
+ {
+  "id": 7,
+  "tag": "count",
+  "question": "How many portfolios have a high risk level?",
+  "sql": "SELECT COUNT(*) AS n FROM Portfolios WHERE RiskLevel='High'"
+ },
+ {
+  "id": 8,
+  "tag": "groupby",
+  "question": "How many accounts of each account type are there?",
+  "sql": "SELECT AccountType, COUNT(*) AS n FROM Accounts GROUP BY AccountType"
+ },
+ {
+  "id": 9,
+  "tag": "agg",
+  "question": "What is the average current value of an asset?",
+  "sql": "SELECT AVG(CurrentValue) AS AvgValue FROM Assets"
+ },
+ {
+  "id": 10,
+  "tag": "topn",
+  "question": "What are the 5 most valuable assets?",
+  "sql": "SELECT TOP 5 Name, CurrentValue FROM Assets ORDER BY CurrentValue DESC"
+ },
+ {
+  "id": 11,
+  "tag": "groupby",
+  "question": "How many transactions of each type were made?",
+  "sql": "SELECT Type, COUNT(*) AS n FROM Transactions GROUP BY Type"
+ },
+ {
+  "id": 12,
+  "tag": "agg-filter",
+  "question": "What is the total amount of all Withdraw transactions?",
+  "sql": "SELECT SUM(Amount) AS TotalWithdraw FROM Transactions WHERE Type='Withdraw'"
+ },
+ {
+  "id": 13,
+  "tag": "date",
+  "question": "How many transactions happened in 2022?",
+  "sql": "SELECT COUNT(*) AS n FROM Transactions WHERE YEAR(Date)=2022"
+ },
+ {
+  "id": 14,
+  "tag": "date-group",
+  "question": "What is the total transaction amount per year?",
+  "sql": "SELECT YEAR(Date) AS Yr, SUM(Amount) AS Total FROM Transactions GROUP BY YEAR(Date)"
+ },
+ {
+  "id": 15,
+  "tag": "join",
+  "question": "How many clients does advisor with ID 72 have?",
+  "sql": "SELECT COUNT(*) AS n FROM Clients WHERE AdvisorID=72"
+ },
+ {
+  "id": 16,
+  "tag": "join-topn",
+  "question": "Which 5 advisors have the most clients?",
+  "sql": "SELECT TOP 5 a.Name, COUNT(*) AS n FROM Advisors a JOIN Clients c ON c.AdvisorID=a.AdvisorID GROUP BY a.Name ORDER BY n DESC, a.Name",
+  "compare": "first_row_and_values"
+ },
+ {
+  "id": 17,
+  "tag": "view-topn",
+  "question": "Show the 10 portfolios with the highest total value.",
+  "sql": "SELECT TOP 10 PortfolioName, TotalPortfolioValue FROM PortfolioSummary ORDER BY TotalPortfolioValue DESC"
+ },
+ {
+  "id": 18,
+  "tag": "view",
+  "question": "How many assets does portfolio 1 contain?",
+  "sql": "SELECT COUNT(*) AS n FROM PortfolioAssets WHERE PortfolioID=1"
+ },
+ {
+  "id": 19,
+  "tag": "join-agg",
+  "question": "What is the total portfolio value of client Nathan Perry?",
+  "sql": "SELECT TotalPortfolioValue FROM ClientPortfolioValue WHERE ClientName='Nathan Perry'"
+ },
+ {
+  "id": 20,
+  "tag": "join-agg",
+  "question": "What is the average portfolio value per risk level?",
+  "sql": "SELECT p.RiskLevel, AVG(ps.TotalPortfolioValue) AS AvgValue FROM PortfolioSummary ps JOIN Portfolios p ON p.PortfolioID=ps.PortfolioID GROUP BY p.RiskLevel"
+ },
+ {
+  "id": 21,
+  "tag": "join-filter",
+  "question": "How many clients with a Low risk profile have a High risk portfolio?",
+  "sql": "SELECT COUNT(DISTINCT c.ClientID) AS n FROM Clients c JOIN Portfolios p ON p.ClientID=c.ClientID WHERE c.RiskProfile='Low' AND p.RiskLevel='High'"
+ },
+ {
+  "id": 22,
+  "tag": "join-agg",
+  "question": "Which asset type has the highest total allocation across all portfolios?",
+  "sql": "SELECT TOP 1 a.AssetType FROM PortfolioAssets pa JOIN Assets a ON a.AssetID=pa.AssetID GROUP BY a.AssetType ORDER BY SUM(pa.Allocation) DESC"
+ },
+ {
+  "id": 23,
+  "tag": "projection",
+  "question": "What is the highest projected future value of any portfolio?",
+  "sql": "SELECT MAX(FutureValue) AS MaxFuture FROM Projections"
+ },
+ {
+  "id": 24,
+  "tag": "projection",
+  "question": "How many projections are dated after 2028?",
+  "sql": "SELECT COUNT(*) AS n FROM Projections WHERE ProjectionDate > '2028-12-31'"
+ },
+ {
+  "id": 25,
+  "tag": "join-topn",
+  "question": "Which 3 clients have the most accounts?",
+  "sql": "SELECT TOP 3 c.Name, COUNT(*) AS n FROM Clients c JOIN Accounts a ON a.ClientID=c.ClientID GROUP BY c.Name ORDER BY n DESC, c.Name",
+  "compare": "first_row_and_values"
+ },
+ {
+  "id": 26,
+  "tag": "join-filter",
+  "question": "How many Investment accounts belong to High risk clients?",
+  "sql": "SELECT COUNT(*) AS n FROM Accounts a JOIN Clients c ON c.ClientID=a.ClientID WHERE a.AccountType='Investment' AND c.RiskProfile='High'"
+ },
+ {
+  "id": 27,
+  "tag": "agg",
+  "question": "What is the largest single transaction amount?",
+  "sql": "SELECT MAX(Amount) AS MaxAmount FROM Transactions"
+ },
+ {
+  "id": 28,
+  "tag": "join-agg",
+  "question": "What is the total Sell amount for Stock assets?",
+  "sql": "SELECT SUM(t.Amount) AS Total FROM Transactions t JOIN Assets a ON a.AssetID=t.AssetID WHERE t.Type='Sell' AND a.AssetType='Stock'"
+ },
+ {
+  "id": 29,
+  "tag": "view",
+  "question": "How many portfolios contain more than 5 assets?",
+  "sql": "SELECT COUNT(*) AS n FROM PortfolioSummary WHERE NumberOfAssets > 5"
+ },
+ {
+  "id": 30,
+  "tag": "multi-join",
+  "question": "Which advisor's clients have the highest combined portfolio value?",
+  "sql": "SELECT TOP 1 a.Name FROM Advisors a JOIN Clients c ON c.AdvisorID=a.AdvisorID JOIN ClientPortfolioValue cpv ON cpv.ClientID=c.ClientID GROUP BY a.Name ORDER BY SUM(cpv.TotalPortfolioValue) DESC"
+ }
+]

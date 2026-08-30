@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }}</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --panel:#fff; --ink:#101418; --muted:#5b6672; --line:#e2e6ea;
+    --accent:#2f6feb; --ok:#0f8a5f; --bad:#c0392b; --code:#f2f4f7; --bar:#2f6feb;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0f1216; --panel:#161b22; --ink:#e6edf3; --muted:#93a1b0; --line:#262e38;
+           --accent:#5b9cff; --ok:#3fb984; --bad:#ff6b5e; --code:#0d1117; --bar:#3f7bde; }
+  }
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif}
+  header{padding:22px 28px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
+  h1{margin:0;font-size:19px;letter-spacing:-.2px}
+  .sub{color:var(--muted);font-size:13px;margin-top:4px}
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 28px 60px}
+  .ask{display:flex;gap:10px;margin-bottom:12px}
+  input[type=text]{flex:1;padding:13px 15px;border:1px solid var(--line);border-radius:10px;
+    background:var(--panel);color:var(--ink);font-size:15px}
+  input[type=text]:focus{outline:2px solid var(--accent);outline-offset:-1px}
+  button{padding:13px 20px;border:0;border-radius:10px;background:var(--accent);color:#fff;
+    font-size:15px;font-weight:600;cursor:pointer}
+  button:disabled{opacity:.55;cursor:default}
+  button.ghost{background:transparent;color:var(--accent);border:1px solid var(--line);font-weight:500}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:22px}
+  .chip{padding:6px 11px;border:1px solid var(--line);border-radius:999px;background:var(--panel);
+    color:var(--muted);font-size:12.5px;cursor:pointer}
+  .chip:hover{color:var(--accent);border-color:var(--accent)}
+  .cols{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:18px;align-items:start}
+  @media(max-width:860px){.cols{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:18px}
+  .card h2{margin:0 0 4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .hint{color:var(--muted);font-size:12px;margin:0 0 12px}
+  .ctx{border-left:2px solid var(--line);padding:2px 0 2px 11px;margin-bottom:13px}
+  .ctx b{display:block;font-size:12.5px;font-weight:600}
+  .ctx span{display:block;color:var(--muted);font-size:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    margin-top:3px;word-break:break-word;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;
+    -webkit-line-clamp:3;cursor:pointer}
+  .ctx.open span{-webkit-line-clamp:unset}
+  .ctx b{cursor:pointer}
+  .tag{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);
+    color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em}
+  textarea{width:100%;min-height:76px;padding:13px;border:1px solid var(--line);border-radius:9px;
+    background:var(--code);color:var(--ink);font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;resize:vertical}
+  .badge{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;padding:7px 11px;border-radius:8px;
+    background:var(--code);margin:11px 0}
+  .badge.ok{color:var(--ok)} .badge.bad{color:var(--bad)}
+  .row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .meta{color:var(--muted);font-size:12px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+  td:not(:first-child){font-variant-numeric:tabular-nums}
+  .scroll{overflow-x:auto}
+  .bar{display:grid;grid-template-columns:minmax(90px,190px) 1fr auto;gap:11px;align-items:center;margin-bottom:6px;font-size:13px}
+  .bar .name{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bar .track{background:var(--code);border-radius:5px;height:19px;overflow:hidden}
+  .bar .fill{background:var(--bar);height:100%;border-radius:5px}
+  .bar .val{font-variant-numeric:tabular-nums;font-size:12.5px}
+  .err{color:var(--bad);font-size:13.5px}
+  .spin{display:inline-block;width:13px;height:13px;border:2px solid var(--line);border-top-color:var(--accent);
+    border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .hidden{display:none}
+  .ctx.used{border-left-color:var(--ok)}
+  .ctxhead{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .score{margin-left:auto;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .used-badge{font-size:10px;padding:1px 6px;border-radius:999px;background:var(--ok);color:#fff;letter-spacing:.04em}
+  .more{width:100%;margin-top:6px;background:transparent;border:1px dashed var(--line);color:var(--muted);
+    font-size:12.5px;font-weight:500;padding:9px}
+  .more:hover{color:var(--accent);border-color:var(--accent)}
+  .summary{font-size:12px;color:var(--muted);margin:-6px 0 12px}
+  .hist{display:flex;flex-wrap:wrap;gap:7px;margin:-12px 0 20px}
+  .hist span{font-size:12px;color:var(--muted);padding:5px 10px;border:1px solid var(--line);
+    border-radius:7px;background:var(--panel);cursor:pointer;max-width:280px;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .hist span:hover{color:var(--accent);border-color:var(--accent)}
+  .sqlhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .link{background:none;border:0;color:var(--accent);font-size:12px;cursor:pointer;padding:2px 4px;font-weight:500}
+  .obj{border-bottom:1px solid var(--line)}
+  .obj:last-child{border-bottom:0}
+  .obj summary{list-style:none;cursor:pointer;padding:7px 0;font-size:13px;display:flex;align-items:center;gap:8px}
+  .obj summary::-webkit-details-marker{display:none}
+  .obj summary:hover{color:var(--accent)}
+  .kind{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+    border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+  .cols-list{padding:0 0 9px 4px;display:flex;flex-wrap:wrap;gap:5px}
+  .col{font-size:11.5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);
+    background:var(--code);border-radius:5px;padding:2px 7px}
+  .col i{opacity:.6;font-style:normal}
+  details.panel{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin-bottom:18px}
+  details.panel > summary{cursor:pointer;list-style:none;padding:13px 18px;font-size:12px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--muted);display:flex;gap:9px;align-items:center}
+  details.panel > summary::-webkit-details-marker{display:none}
+  details.panel > summary:hover{color:var(--accent)}
+  details.panel[open] > summary{border-bottom:1px solid var(--line)}
+  .msg{padding:13px 18px;border-bottom:1px solid var(--line)}
+  .msg:last-child{border-bottom:0}
+  .role{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);
+    border:1px solid var(--line);border-radius:4px;padding:1px 6px;margin-bottom:7px;display:inline-block}
+  .msg pre{margin:0;white-space:pre-wrap;word-break:break-word;font:11.5px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;
+    color:var(--muted);max-height:260px;overflow:auto}
+</style>
+</head>
+<body>
+<header>
+  <h1>{{ title }}</h1>
+  <div class="sub" id="meta">loading…</div>
+</header>
+
+<div class="wrap">
+  <div class="ask">
+    <input type="text" id="q" placeholder="Ask about advisors, clients, portfolios, assets or transactions…" autofocus>
+    <button id="go">Generate SQL</button>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="hist" id="hist"></div>
+
+  <div id="err" class="card err hidden"></div>
+
+  <div class="cols">
+    <div>
+      <div class="card">
+        <h2>Schema</h2>
+        <p class="hint">The warehouse this app queries. Click a name to put it in your question.</p>
+        <div id="schema"><p class="meta">loading…</p></div>
+      </div>
+      <div class="card" id="ctxCard">
+        <h2>Retrieved context</h2>
+        <p class="hint">What the RAG layer pulled from ChromaDB, scored by similarity. Green = the query actually used it.</p>
+        <p class="summary" id="ctxSummary"></p>
+        <div id="ctx"><p class="meta">Ask a question to see it.</p></div>
+        <button class="more hidden" id="more"></button>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="sqlhead"><h2>Generated SQL</h2><button class="link hidden" id="copy">copy</button></div>
+        <p class="hint">Editable — fix it and run it yourself; nothing executes until you press Run.</p>
+        <textarea id="sql" spellcheck="false" placeholder="-- the generated query appears here"></textarea>
+        <div id="guard"></div>
+        <div class="row">
+          <button id="run" disabled>Run query</button>
+          <span class="meta" id="genMeta"></span>
+        </div>
+      </div>
+      <details class="panel hidden" id="promptPanel">
+        <summary>Prompt sent to the model <span class="meta" id="promptMeta"></span></summary>
+        <div id="prompt"></div>
+      </details>
+      <div class="card hidden" id="resCard">
+        <h2>Result</h2>
+        <div class="row" style="margin-bottom:10px">
+          <span class="meta" id="resMeta"></span>
+          <button class="ghost" id="csv">Download CSV</button>
+        </div>
+        <div id="chart" style="margin-bottom:16px"></div>
+        <div class="scroll"><table id="tbl"></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = v => typeof v === "number" ? v.toLocaleString(undefined,{maximumFractionDigits:2}) : esc(v);
+let lastResult = null, ctxItems = [], ctxShown = 5, history = [];
+const TOP_N = 5;
+
+fetch("/api/schema").then(r => r.json()).then(d => {
+  if(!d.objects || !d.objects.length){ $("#schema").innerHTML = '<p class="meta">unavailable</p>'; return; }
+  $("#schema").innerHTML = d.objects.map(o => `
+    <details class="obj">
+      <summary><span class="kind">${o.kind}</span><b>${esc(o.name)}</b>
+        <span class="meta" style="margin-left:auto">${o.columns.length}</span></summary>
+      <div class="cols-list">${o.columns.map(c =>
+        `<span class="col">${esc(c.name)} <i>${esc(c.type)}</i></span>`).join("")}</div>
+    </details>`).join("");
+  document.querySelectorAll("#schema .obj b").forEach(b =>
+    b.onclick = e => { e.preventDefault();
+      const q = $("#q"); q.value = (q.value.trim() + " " + b.textContent).trim(); q.focus(); });
+});
+
+fetch("/api/meta").then(r => r.json()).then(m => {
+  const t = Object.entries(m.training).map(([k,v]) => `${v} ${k}`).join(" · ");
+  $("#meta").textContent = `${m.backend} · ${m.database} — model ${m.model} (reasoning ${m.reasoning_effort}) — trained on ${t}`;
+  $("#chips").innerHTML = m.examples.map(q => `<span class="chip">${esc(q)}</span>`).join("");
+  document.querySelectorAll(".chip").forEach(c =>
+    c.onclick = () => { $("#q").value = c.textContent; generate(); });
+});
+
+function autosize(el){ el.style.height = "auto"; el.style.height = Math.max(76, el.scrollHeight + 4) + "px"; }
+
+function renderContext(){
+  const shown = ctxItems.slice(0, ctxShown);
+  $("#ctx").innerHTML = shown.map(c => `
+    <div class="ctx ${c.used ? "used" : ""}">
+      <div class="ctxhead">
+        <span class="tag">${esc(c.kind)}</span>
+        ${c.used ? '<span class="used-badge">used</span>' : ""}
+        <span class="score">${c.score}% match</span>
+      </div>
+      <b>${esc(c.label)}</b><span>${esc(c.text)}</span>
+    </div>`).join("");
+  document.querySelectorAll("#ctx .ctx").forEach(el =>
+    el.onclick = () => el.classList.toggle("open"));
+  const rest = ctxItems.length - ctxShown;
+  const btn = $("#more");
+  btn.classList.toggle("hidden", ctxItems.length <= TOP_N);
+  btn.textContent = rest > 0 ? `Show ${rest} more chunk${rest === 1 ? "" : "s"}` : "Show fewer";
+}
+
+function renderHistory(){
+  $("#hist").innerHTML = history.map((q,i) => `<span data-i="${i}" title="${esc(q)}">↺ ${esc(q)}</span>`).join("");
+  document.querySelectorAll("#hist span").forEach(el =>
+    el.onclick = () => { $("#q").value = history[el.dataset.i]; generate(); });
+}
+
+function showError(msg){ const e = $("#err"); e.textContent = msg; e.classList.remove("hidden"); }
+function clearError(){ $("#err").classList.add("hidden"); }
+
+async function generate(){
+  const question = $("#q").value.trim();
+  if(!question) return;
+  clearError(); $("#resCard").classList.add("hidden");
+  $("#go").disabled = true; $("#go").innerHTML = '<span class="spin"></span> thinking';
+  $("#ctx").innerHTML = '<p class="meta">retrieving…</p>';
+  try{
+    const r = await fetch("/api/generate", {method:"POST", headers:{"Content-Type":"application/json"},
+                                            body: JSON.stringify({question})});
+    const d = await r.json();
+    if(!r.ok){ showError(d.error || "Generation failed."); $("#ctx").innerHTML = ""; return; }
+    ctxItems = d.context; ctxShown = TOP_N;
+    const usedCount = ctxItems.filter(c => c.used).length;
+    $("#ctxSummary").textContent = ctxItems.length
+      ? `${ctxItems.length} chunks retrieved · ${usedCount} used by the query`
+      : "";
+    if(ctxItems.length) renderContext();
+    else { $("#ctx").innerHTML = '<p class="meta">Nothing retrieved.</p>'; $("#more").classList.add("hidden"); }
+    $("#sql").value = d.guarded_sql || d.sql; autosize($("#sql"));
+    $("#guard").innerHTML = `<div class="badge ${d.guard.ok?"ok":"bad"}">${d.guard.ok?"✓ guard passed":"✗ guard blocked"} — ${esc(d.guard.note)}</div>`;
+    $("#genMeta").textContent = `retrieval ${d.retrieval_ms}ms · model ${d.seconds}s · ${d.tokens} tokens · 1 LLM call`;
+    $("#copy").classList.remove("hidden");
+    const chars = d.prompt.reduce((n,m) => n + m.content.length, 0);
+    $("#promptMeta").textContent = `${d.prompt.length} messages · ~${Math.round(chars/4).toLocaleString()} tokens`;
+    $("#prompt").innerHTML = d.prompt.map(m =>
+      `<div class="msg"><span class="role">${esc(m.role)}</span><pre>${esc(m.content)}</pre></div>`).join("");
+    $("#promptPanel").classList.remove("hidden");
+    if(!history.includes(question)){ history.unshift(question); history = history.slice(0,6); renderHistory(); }
+    $("#run").disabled = !d.guard.ok;
+    if(d.guard.ok) run();
+  }catch(e){ showError(String(e)); }
+  finally{ $("#go").disabled = false; $("#go").textContent = "Generate SQL"; }
+}
+
+async function run(){
+  clearError();
+  $("#run").disabled = true; $("#run").innerHTML = '<span class="spin"></span> running';
+  try{
+    const r = await fetch("/api/run", {method:"POST", headers:{"Content-Type":"application/json"},
+                                       body: JSON.stringify({sql: $("#sql").value})});
+    const d = await r.json();
+    if(!r.ok){ showError(d.error || "Query failed."); return; }
+    lastResult = d;
+    $("#resCard").classList.remove("hidden");
+    $("#resMeta").textContent = `${d.row_count} row${d.row_count===1?"":"s"} · ${d.seconds}s`;
+    $("#tbl").innerHTML = "<thead><tr>" + d.columns.map(c => `<th>${esc(c)}</th>`).join("") + "</tr></thead><tbody>"
+      + d.rows.slice(0,200).map(row => "<tr>" + row.map(v => `<td>${fmt(v)}</td>`).join("") + "</tr>").join("") + "</tbody>";
+    $("#chart").innerHTML = d.chart ? `<div class="meta" style="margin-bottom:8px">${esc(d.chart.value)} by ${esc(d.chart.label)}</div>`
+      + d.chart.bars.map(b => `<div class="bar"><span class="name" title="${esc(b.name)}">${esc(b.name)}</span>
+          <span class="track"><span class="fill" style="width:${b.pct}%"></span></span>
+          <span class="val">${fmt(b.value)}</span></div>`).join("") : "";
+  }catch(e){ showError(String(e)); }
+  finally{ $("#run").disabled = false; $("#run").textContent = "Run query"; }
+}
+
+$("#csv").onclick = () => {
+  if(!lastResult) return;
+  const cell = v => `"${String(v ?? "").replace(/"/g,'""')}"`;
+  const csv = [lastResult.columns.map(cell).join(","), ...lastResult.rows.map(r => r.map(cell).join(","))].join("\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
+  a.download = "result.csv"; a.click(); URL.revokeObjectURL(a.href);
+};
+$("#more").onclick = () => { ctxShown = ctxShown >= ctxItems.length ? TOP_N : ctxItems.length; renderContext(); };
+$("#copy").onclick = async () => {
+  await navigator.clipboard.writeText($("#sql").value);
+  $("#copy").textContent = "copied"; setTimeout(() => $("#copy").textContent = "copy", 1200);
+};
+$("#sql").addEventListener("input", e => autosize(e.target));
+$("#sql").addEventListener("keydown", e => { if((e.metaKey||e.ctrlKey) && e.key === "Enter") run(); });
+$("#go").onclick = generate;
+$("#run").onclick = run;
+$("#q").addEventListener("keydown", e => { if(e.key === "Enter") generate(); });
+</script>
+</body>
+</html>

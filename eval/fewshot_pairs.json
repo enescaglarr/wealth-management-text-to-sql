@@ -1,0 +1,7 @@
+[
+  {"question": "List the names of all advisors.", "sql": "SELECT Name FROM Advisors"},
+  {"question": "How many clients have a Medium risk profile?", "sql": "SELECT COUNT(*) AS n FROM Clients WHERE RiskProfile = 'Medium'"},
+  {"question": "What is the total value of all portfolios combined?", "sql": "SELECT SUM(TotalPortfolioValue) AS Total FROM PortfolioSummary"},
+  {"question": "How many Deposit transactions were made on Savings accounts?", "sql": "SELECT COUNT(*) AS n FROM Transactions t JOIN Accounts a ON a.AccountID = t.AccountID WHERE t.Type = 'Deposit' AND a.AccountType = 'Savings'"},
+  {"question": "Which asset has the lowest current value?", "sql": "SELECT TOP 1 AssetID, Name, CurrentValue FROM Assets ORDER BY CurrentValue ASC"}
+]
