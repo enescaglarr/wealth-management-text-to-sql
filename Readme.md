@@ -12,8 +12,8 @@ and a local SQL Server container, so the project costs nothing to run.
 ## Quick Start
 
 ```bash
-git clone https://github.com/enescaglarr/WealthManagement-TextToSQL.git
-cd WealthManagement-TextToSQL
+git clone https://github.com/enescaglarr/wealth-management-text-to-sql.git
+cd wealth-management-text-to-sql
 cp .env.example .env      # fill in GROQ_API_KEY and pick a DB_PASSWORD
 ./run.sh
 ```
