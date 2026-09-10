@@ -41,6 +41,9 @@ db = pyodbc.connect(Credentials.connection_string())
 cursor = db.cursor()
 cursor.fast_executemany = True
 fake = Faker()
+#pin the seed so the warehouse regenerates identically -- the recorded results in
+#demo.md are only re-derivable if every run produces the same synthetic data
+fake.seed_instance(20260906)
 
 
 def run_sql_file(name: str) -> None:
