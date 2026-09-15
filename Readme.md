@@ -1,5 +1,7 @@
 # Wealth Management Text-to-SQL
 
+**Live demo:** https://enescaglar.com/#/demo/text-to-sql — on my [portfolio](https://enescaglar.com).
+
 Wealth Management Text-to-SQL is a data warehouse — advisors, clients, accounts, assets, transactions,
 portfolios, projections — that you can query in plain English. It pairs a SQL Server schema (views and
 stored procedures included, seeded with Faker-generated synthetic data) with two natural-language-to-SQL
